@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Finance Back Office — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --paper: #F7F8F5;
+    --surface: #FFFFFF;
+    --ink: #12181B;
+    --ink-soft: #4B5560;
+    --muted: #8A9199;
+    --border: #E6E8E3;
+    --primary: #1B6B4A;
+    --primary-soft: #E4F0EA;
+    --amber: #E8A33D;
+    --danger: #C1443C;
+    --danger-soft: #FBEAE8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .card {
+    width: 100%;
+    max-width: 400px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px 28px;
+    box-shadow: 0 1px 2px rgba(18,24,27,0.04);
+  }
+  .logo {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--primary), var(--amber));
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-family: 'Space Grotesk', sans-serif;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0 0 24px;
+  }
+  .tabs {
+    display: flex;
+    background: var(--paper);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 24px;
+  }
+  .tab {
+    flex: 1;
+    text-align: center;
+    padding: 8px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--ink-soft);
+    transition: all 0.15s;
+  }
+  .tab.active { background: var(--surface); color: var(--ink); box-shadow: 0 1px 2px rgba(18,24,27,0.08); }
+  .field { margin-bottom: 14px; }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+  input, select {
+    width: 100%;
+    padding: 11px 13px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    outline: none;
+    background: var(--surface);
+    color: var(--ink);
+  }
+  input:focus, select:focus { border-color: var(--primary); }
+  button.primary {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    background: var(--primary);
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+  button.primary:disabled { opacity: 0.6; cursor: default; }
+  .error {
+    background: var(--danger-soft);
+    color: var(--danger);
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .success {
+    background: var(--primary-soft);
+    color: var(--primary);
+    font-size: 13px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    display: none;
+  }
+  .hidden { display: none !important; }
+  .step-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 14px;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">AI</div>
+  <h1 id="heading">Welcome back</h1>
+  <p class="subtitle" id="subheading">Sign in to your finance back office</p>
+
+  <div class="tabs">
+    <div class="tab active" id="tabLogin" onclick="switchTab('login')">Sign in</div>
+    <div class="tab" id="tabSignup" onclick="switchTab('signup')">Create account</div>
+  </div>
+
+  <div class="error" id="errorBox"></div>
+  <div class="success" id="successBox"></div>
+
+  <!-- LOGIN FORM -->
+  <form id="loginForm">
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="loginEmail" required placeholder="you@business.com" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="loginPassword" required placeholder="••••••••" />
+    </div>
+    <button class="primary" type="submit" id="loginBtn">Sign in</button>
+  </form>
+
+  <!-- SIGNUP FORM (step 1: account) -->
+  <form id="signupForm" class="hidden">
+    <div class="field">
+      <label>Full name</label>
+      <input type="text" id="signupName" required placeholder="e.g. Sarah Aciro" />
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="signupEmail" required placeholder="you@business.com" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="signupPassword" required placeholder="At least 8 characters" minlength="8" />
+    </div>
+    <button class="primary" type="submit" id="signupBtn">Continue</button>
+  </form>
+
+  <!-- SIGNUP STEP 2: company creation -->
+  <form id="companyForm" class="hidden">
+    <p class="step-label">Step 2 of 2 — set up your business</p>
+    <div class="field">
+      <label>Business name</label>
+      <input type="text" id="companyName" required placeholder="e.g. Kiira Textiles Ltd" />
+    </div>
+    <div class="field">
+      <label>Industry</label>
+      <select id="companyIndustry">
+        <option>Retail</option>
+        <option>Restaurant</option>
+        <option>Pharmacy</option>
+        <option>Hardware / Wholesale</option>
+        <option>Clinic / Healthcare</option>
+        <option>Salon</option>
+        <option>School</option>
+        <option>Service business</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Currency</label>
+      <select id="companyCurrency">
+        <option value="UGX">UGX — Ugandan Shilling</option>
+        <option value="KES">KES — Kenyan Shilling</option>
+        <option value="TZS">TZS — Tanzanian Shilling</option>
+        <option value="USD">USD — US Dollar</option>
+      </select>
+    </div>
+    <button class="primary" type="submit" id="companyBtn">Create business & continue</button>
+  </form>
+</div>
+
+<script>
+  // ============================================================
+  // CONFIG — replace with your real project values
+  // Find these in Supabase Dashboard → Project Settings → API
+  // ============================================================
+  const SUPABASE_URL = "https://jqvvbkndsvvporqgndfh.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_r1kaybQq9Q05z804FAxMIA_KR-42-Xg";
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // ---- UI helpers ----
+  function showError(msg) {
+    const box = document.getElementById("errorBox");
+    box.textContent = msg;
+    box.style.display = "block";
+    document.getElementById("successBox").style.display = "none";
+  }
+  function showSuccess(msg) {
+    const box = document.getElementById("successBox");
+    box.textContent = msg;
+    box.style.display = "block";
+    document.getElementById("errorBox").style.display = "none";
+  }
+  function clearMessages() {
+    document.getElementById("errorBox").style.display = "none";
+    document.getElementById("successBox").style.display = "none";
+  }
+
+  function switchTab(which) {
+    clearMessages();
+    const isLogin = which === "login";
+    document.getElementById("tabLogin").classList.toggle("active", isLogin);
+    document.getElementById("tabSignup").classList.toggle("active", !isLogin);
+    document.getElementById("loginForm").classList.toggle("hidden", !isLogin);
+    document.getElementById("signupForm").classList.toggle("hidden", isLogin);
+    document.getElementById("companyForm").classList.add("hidden");
+    document.getElementById("heading").textContent = isLogin ? "Welcome back" : "Create your account";
+    document.getElementById("subheading").textContent = isLogin
+      ? "Sign in to your finance back office"
+      : "Know exactly where your business stands, every day";
+  }
+
+  // ---- LOGIN ----
+  document.getElementById("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearMessages();
+    const btn = document.getElementById("loginBtn");
+    btn.disabled = true;
+    btn.textContent = "Signing in…";
+
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+    btn.disabled = false;
+    btn.textContent = "Sign in";
+
+    if (error) {
+      showError(error.message);
+      return;
+    }
+
+    // Redirect to dashboard once it exists
+    window.location.href = "/dashboard.html";
+  });
+
+  // ---- SIGNUP: step 1, create the auth user ----
+  let pendingUserId = null;
+
+  document.getElementById("signupForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearMessages();
+    const btn = document.getElementById("signupBtn");
+    btn.disabled = true;
+    btn.textContent = "Creating account…";
+
+    const name = document.getElementById("signupName").value;
+    const email = document.getElementById("signupEmail").value;
+    const password = document.getElementById("signupPassword").value;
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name } }
+    });
+
+    btn.disabled = false;
+    btn.textContent = "Continue";
+
+    if (error) {
+      showError(error.message);
+      return;
+    }
+
+    // If email confirmation is required, data.session will be null.
+    if (!data.session) {
+      showSuccess("Account created. Check your email to confirm, then sign in to finish setup.");
+      return;
+    }
+
+    pendingUserId = data.user.id;
+    document.getElementById("signupForm").classList.add("hidden");
+    document.getElementById("companyForm").classList.remove("hidden");
+  });
+
+  // ---- SIGNUP: step 2, create the company + owner membership ----
+  document.getElementById("companyForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearMessages();
+    const btn = document.getElementById("companyBtn");
+    btn.disabled = true;
+    btn.textContent = "Setting up…";
+
+    const name = document.getElementById("companyName").value;
+    const industry = document.getElementById("companyIndustry").value;
+    const currency = document.getElementById("companyCurrency").value;
+
+    // 1. Create the company
+    const { data: company, error: companyError } = await supabase
+      .from("companies")
+      .insert({ name, industry, currency })
+      .select()
+      .single();
+
+    if (companyError) {
+      btn.disabled = false;
+      btn.textContent = "Create business & continue";
+      showError(companyError.message);
+      return;
+    }
+
+    // 2. Add the current user as owner of this company
+    const { error: memberError } = await supabase
+      .from("company_users")
+      .insert({
+        company_id: company.id,
+        user_id: pendingUserId,
+        role: "owner"
+      });
+
+    btn.disabled = false;
+    btn.textContent = "Create business & continue";
+
+    if (memberError) {
+      showError(memberError.message);
+      return;
+    }
+
+    window.location.href = "/dashboard.html";
+  });
+</script>
+
+</body>
+</html>
